@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZyaFinance — Clean & Modern Budget Tracker</title>
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="ZyaFinance">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkbg: '#0f172a',
+                        cardbg: '#1e293b',
+                        accent: '#6366f1',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="bg-darkbg text-slate-100 font-sans antialiased min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white" x-data="zyaFinance()">
+
+    <!-- Header -->
+    <header class="border-b border-slate-800 bg-cardbg/50 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                    <i data-lucide="wallet" class="w-5 h-5 text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">ZyaFinance</h1>
+                    <p class="text-xs text-slate-400">Clean Financial & Goal Tracker</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2 text-xs bg-slate-800/80 px-3 py-1.5 rounded-full border border-slate-700/50">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span class="text-slate-300 font-medium">Active Session</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto px-4 py-8 flex-1 w-full space-y-6">
+
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Total Balance -->
+            <div class="bg-cardbg border border-slate-800 p-5 rounded-2xl shadow-xl relative overflow-hidden group hover:border-slate-700 transition">
+                <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-indigo-500/10 rounded-full blur-xl group-hover:bg-indigo-500/20 transition"></div>
+                <div class="flex justify-between items-start mb-2">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Saldo</span>
+                    <div class="p-2 rounded-lg bg-indigo-500/10 text-indigo-400">
+                        <i data-lucide="dollar-sign" class="w-4 h-4"></i>
+                    </div>
+                </div>
+                <div class="text-2xl font-bold tracking-tight text-white" x-text="formatIDR(balance)"></div>
+            </div>
+
+            <!-- Total Income -->
+            <div class="bg-cardbg border border-slate-800 p-5 rounded-2xl shadow-xl relative overflow-hidden group hover:border-slate-700 transition">
+                <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl group-hover:bg-emerald-500/20 transition"></div>
+                <div class="flex justify-between items-start mb-2">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Pemasukan</span>
+                    <div class="p-2 rounded-lg bg-emerald-500/10 text-emerald-400">
+                        <i data-lucide="arrow-down-left" class="w-4 h-4"></i>
+                    </div>
+                </div>
+                <div class="text-2xl font-bold tracking-tight text-emerald-400" x-text="formatIDR(totalIncome)"></div>
+            </div>
+
+            <!-- Total Expense -->
+            <div class="bg-cardbg border border-slate-800 p-5 rounded-2xl shadow-xl relative overflow-hidden group hover:border-slate-700 transition">
+                <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-rose-500/10 rounded-full blur-xl group-hover:bg-rose-500/20 transition"></div>
+                <div class="flex justify-between items-start mb-2">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Pengeluaran</span>
+                    <div class="p-2 rounded-lg bg-rose-500/10 text-rose-400">
+                        <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+                    </div>
+                </div>
+                <div class="text-2xl font-bold tracking-tight text-rose-400" x-text="formatIDR(totalExpense)"></div>
+            </div>
+        </div>
+
+        <!-- Hardware Goal / Wishlist Tracker -->
+        <div class="bg-cardbg border border-slate-800 p-5 rounded-2xl shadow-xl">
+            <div class="flex justify-between items-center mb-4">
+                <div class="flex items-center space-x-2">
+                    <i data-lucide="target" class="w-5 h-5 text-indigo-400"></i>
+                    <h2 class="font-semibold text-white">Target Impian (Hardware / ThinkPad)</h2>
+                </div>
+                <button @click="editGoal()" class="text-xs text-indigo-400 hover:text-indigo-300 font-medium">Ubah Target</button>
+            </div>
+            <div class="space-y-2">
+                <div class="flex justify-between text-sm">
+                    <span class="text-slate-300 font-medium" x-text="goalName"></span>
+                    <span class="text-slate-400" x-text="formatIDR(balance) + ' / ' + formatIDR(goalTarget)"></span>
+                </div>
+                <div class="w-full bg-slate-800 h-3 rounded-full overflow-hidden p-0.5 border border-slate-700/50">
+                    <div class="bg-gradient-to-r from-indigo-500 to-emerald-400 h-full rounded-full transition-all duration-500" :style="`width: ${Math.min(100, (balance / goalTarget) * 100)}%`"></div>
+                </div>
+                <p class="text-xs text-slate-400 pt-1" x-text="balance >= goalTarget ? '🎉 Target tercapai! Siap checkout!' : `Kurang ${formatIDR(goalTarget - balance)} lagi menuju target.`"></p>
+            </div>
+        </div>
+
+        <!-- Add Transaction Form & History Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Form Input -->
+            <div class="bg-cardbg border border-slate-800 p-5 rounded-2xl shadow-xl h-fit space-y-4">
+                <h2 class="font-semibold text-white flex items-center space-x-2">
+                    <i data-lucide="plus-circle" class="w-4 h-4 text-indigo-400"></i>
+                    <span>Tambah Transaksi</span>
+                </h2>
+                <form @submit.prevent="addTransaction" class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Keterangan</label>
+                        <input type="text" x-model="form.desc" placeholder="Contoh: Gaji / Beli Kopi" required
+                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Nominal (Rp)</label>
+                        <input type="number" x-model.number="form.amount" placeholder="50000" required min="1"
+                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Tipe</label>
+                        <select x-model="form.type" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition">
+                            <option value="income">Pemasukan (+)</option>
+                            <option value="expense">Pengeluaran (-)</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 rounded-xl text-sm transition shadow-lg shadow-indigo-600/30">
+                        Simpan Transaksi
+                    </button>
+                </form>
+            </div>
+
+            <!-- Transaction History -->
+            <div class="md:col-span-2 bg-cardbg border border-slate-800 p-5 rounded-2xl shadow-xl flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="font-semibold text-white flex items-center space-x-2">
+                            <i data-lucide="history" class="w-4 h-4 text-indigo-400"></i>
+                            <span>Riwayat Transaksi</span>
+                        </h2>
+                        <span class="text-xs text-slate-400" x-text="transactions.length + ' transaksi'"></span>
+                    </div>
+
+                    <div class="overflow-y-auto max-h-[350px] space-y-2 pr-1">
+                        <template x-for="(tx, index) in transactions" :key="index">
+                            <div class="flex justify-between items-center bg-slate-900/60 border border-slate-800 p-3 rounded-xl hover:border-slate-700 transition">
+                                <div class="flex items-center space-x-3">
+                                    <div :class="tx.type === 'income' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'" class="p-2 rounded-lg">
+                                        <i :data-lucide="tx.type === 'income' ? 'arrow-down-left' : 'arrow-up-right'" class="w-4 h-4"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium text-white" x-text="tx.desc"></p>
+                                        <p class="text-xs text-slate-400" x-text="tx.date"></p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <span class="text-sm font-bold" :class="tx.type === 'income' ? 'text-emerald-400' : 'text-rose-400'" x-text="(tx.type === 'income' ? '+ ' : '- ') + formatIDR(tx.amount)"></span>
+                                    <button @click="deleteTransaction(index)" class="text-slate-500 hover:text-rose-400 transition p-1">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </template>
+                        <div x-show="transactions.length === 0" class="text-center py-12 text-slate-500 text-sm">
+                            Belum ada transaksi. Yuk tambah dulu!
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800 bg-cardbg/30 text-center py-4 text-xs text-slate-500">
+        ZyaFinance • Clean & Minimalist Financial Dashboard v2.0
+    </footer>
+
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('[SW] Registered:', reg.scope))
+                    .catch(err => console.log('[SW] Registration failed:', err));
+            });
+        }
+    </script>
+
+    <!-- Script Logic -->
+    <script>
+        function zyaFinance() {
+            return {
+                form: {
+                    desc: '',
+                    amount: '',
+                    type: 'income'
+                },
+                goalName: 'ThinkPad T480 / X280',
+                goalTarget: 2000000,
+                transactions: JSON.parse(localStorage.getItem('zya_transactions')) || [
+                    { desc: 'Tabungan Awal', amount: 1500000, type: 'income', date: '09/09/2026' },
+                    { desc: 'Kopi & Snack', amount: 35000, type: 'expense', date: '09/09/2026' }
+                ],
+                get totalIncome() {
+                    return this.transactions
+                        .filter(t => t.type === 'income')
+                        .reduce((sum, t) => sum + t.amount, 0);
+                },
+                get totalExpense() {
+                    return this.transactions
+                        .filter(t => t.type === 'expense')
+                        .reduce((sum, t) => sum + t.amount, 0);
+                },
+                get balance() {
+                    return this.totalIncome - this.totalExpense;
+                },
+                formatIDR(num) {
+                    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(num);
+                },
+                addTransaction() {
+                    if (!this.form.desc || !this.form.amount) return;
+                    const now = new Date().toLocaleDateString('id-ID');
+                    this.transactions.unshift({
+                        desc: this.form.desc,
+                        amount: Number(this.form.amount),
+                        type: this.form.type,
+                        date: now
+                    });
+                    this.form.desc = '';
+                    this.form.amount = '';
+                    this.saveData();
+                    setTimeout(() => lucide.createIcons(), 50);
+                },
+                deleteTransaction(index) {
+                    this.transactions.splice(index, 1);
+                    this.saveData();
+                },
+                editGoal() {
+                    const name = prompt('Nama Target Impian:', this.goalName);
+                    if (name) this.goalName = name;
+                    const target = prompt('Nominal Target (Rp):', this.goalTarget);
+                    if (target && !isNaN(target)) {
+                        this.goalTarget = Number(target);
+                        this.saveData();
+                    }
+                },
+                saveData() {
+                    localStorage.setItem('zya_transactions', JSON.stringify(this.transactions));
+                    localStorage.setItem('zya_goal_name', this.goalName);
+                    localStorage.setItem('zya_goal_target', this.goalTarget);
+                },
+                init() {
+                    const savedGoalName = localStorage.getItem('zya_goal_name');
+                    const savedGoalTarget = localStorage.getItem('zya_goal_target');
+                    if (savedGoalName) this.goalName = savedGoalName;
+                    if (savedGoalTarget) this.goalTarget = Number(savedGoalTarget);
+                    
+                    setTimeout(() => lucide.createIcons(), 100);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
